@@ -130,3 +130,10 @@ dmypy.json
 
 # .idea
 .idea
+
+.vscode
+.vscode/
+
+# Others
+node_modules
+exp
