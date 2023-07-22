@@ -126,3 +126,22 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Константы для приложения users
+INVALID_FORBIDDEN = ('me', 'admin', 'superuser')
+MAX_LENGTH_EMAIL = 254
+MAX_LENGTH_USERNAME = 150
+MAX_LENGTH_FIRST_NAME = 150
+MAX_LENGTH_LAST_NAME = 150
+MAX_LENGTH_PASSWORD_NAME = 150
+
+# Константы для приложения recipes
+MAX_INGREDIENT_NAME_LENGTH = 200
+MAX_INGREDIENT_MEASUREMENT_UNIT_LENGTH = 200
+MAX_TAG_NAME_LENGTH = 50
+MAX_TAG_COLOR_LENGTH = 7
+MAX_RECIPE_NAME_LENGTH = 200
+MIN_COOKING_TIME = 1
+MAX_COOKING_TIME = 20161
+MIN_AMOUNT = 1
+MAX_AMOUNT = 10000
