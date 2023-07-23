@@ -25,7 +25,7 @@ class User(ValidateUsername, AbstractUser):
         max_length=settings.MAX_LENGTH_LAST_NAME,
     )
     password = models.CharField(
-        verbose_name=_("Пароль"),
+        verbose_name="Пароль",
         max_length=settings.MAX_LENGTH_PASSWORD_NAME,
     )
 
@@ -36,10 +36,11 @@ class User(ValidateUsername, AbstractUser):
         constraints = [
             models.UniqueConstraint(
                 fields=['username', 'email'],
-                name='unique_name'
+                name='unique_name',
             ),
             models.CheckConstraint(
-                check=~models.Q(username='me'), name='name_not_me'
+                check=~models.Q(username='me'),
+                name='name_not_me',
             ),
         ]
 
@@ -63,16 +64,16 @@ class Follow(models.Model):
     )
 
     class Meta:
-        constraints = (
+        constraints = [
             models.UniqueConstraint(
-                fields=('follower', 'following'),
+                fields=['follower', 'following'],
                 name='unique_subscription',
             ),
             models.CheckConstraint(
                 check=~models.Q(follower=models.F('following')),
                 name='no_self_subscription',
             ),
-        )
+        ]
 
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
