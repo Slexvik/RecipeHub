@@ -1,47 +1,61 @@
-# from django.contrib import admin
-# from recipes.models import (Favorites, Ingredients, Recipes,
-#                             RecipeIngredient, ShoppingCart, Tags)
+from django.contrib import admin
+from recipes.models import (Favorites, Ingredients, Recipes,
+                            RecipeIngredient, ShoppingCart, Tags)
 
 
-# # class RecipeIngredientInline(admin.TabularInline):
-# #     model = RecipeIngredient
-# #     extra = 1
-
-# @admin.register(Recipes)
-# class RecipeAdmin(admin.ModelAdmin):
-#     list_display = ('id', 'name', 'author', 'cooking_time', 'favorites_count')
-#     search_fields = ('name', 'author')
-#     list_filter = ('author', 'name')
-#     # inlines = [RecipeIngredientInline]
-
-#     # @admin.display(description='счётчик избранного')
-
-#     def favorites_count(self, recipe):
-#         return recipe.favorite.count()
+admin.site.site_header = "Администрирование Foodgram"
 
 
-# @admin.register(Ingredients)
-# class IngredientAdmin(admin.ModelAdmin):
-#     list_display = (
-#         'id',
-#         'name',
-#         'measurement_unit'
-#     )
-#     search_fields = ('name',)
-#     list_filter = ('name',)
+class RecipeIngredientInline(admin.TabularInline):
+    model = RecipeIngredient
+    extra = 1
 
 
-# @admin.register(Tags)
-#     list_display = ('id', 'name', 'color', 'slug')
-#     search_fields = ('name',)
-#     list_filter = ('name',)
+@admin.register(Recipes)
+class RecipeAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'name',
+        'author',
+        'favorites_count',
+    )
+    search_fields = ('name', 'author', 'tags')
+    list_filter = ('name', 'author', 'tags')
+    inlines = [RecipeIngredientInline]
+
+    @admin.display(description='в избранном')
+    def favorites_count(self, recipe):
+        return recipe.favorites.count()
 
 
-# # @register(RecipeIngredient)
-# # class RecipeIngredientAdmin(admin.ModelAdmin):
-# #     list_display = ('id', 'recipe', 'ingredient', 'amount')
-# #     search_fields = ('recipe', 'ingredient')
-# #     list_filter = ('recipe', 'ingredient')
+@admin.register(Ingredients)
+class IngredientAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'name',
+        'measurement_unit',
+    )
+    search_fields = ('name',)
+    list_filter = ('name',)
 
-# admin.site.register(Favorites)
-# admin.site.register(ShoppingCart)
+
+@admin.register(Tags)
+class TagAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'name',
+        'color',
+        'slug',
+    )
+    search_fields = ('name',)
+    list_filter = ('name',)
+
+
+# @admin.register(RecipeIngredient)
+# class RecipeIngredientAdmin(admin.ModelAdmin):
+#     list_display = ('id', 'recipe', 'ingredient', 'amount')
+#     search_fields = ('recipe', 'ingredient')
+#     list_filter = ('recipe', 'ingredient')
+admin.site.register(RecipeIngredient)
+admin.site.register(Favorites)
+admin.site.register(ShoppingCart)

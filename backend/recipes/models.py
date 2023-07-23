@@ -15,7 +15,7 @@ class Tags(models.Model):
         max_length=settings.MAX_LENGTH_NAME_TAG,
         unique=True,
     )
-    color = models.CharField(
+    color = models.CharField(  # colorfield https://pypi.org/project/django-colorfield/
         verbose_name='Цвет',
         unique=True,
         max_length=settings.MAX_LENGTH_COLOR_TAG,
