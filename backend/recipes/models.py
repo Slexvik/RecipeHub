@@ -19,6 +19,14 @@ class Tags(models.Model):
         verbose_name='Цвет',
         unique=True,
         max_length=settings.MAX_LENGTH_COLOR_TAG,
+        # verbose_name=_('Цвет в HEX'),
+        # null=True,
+        # validators=[
+        #     RegexValidator(
+        #         REGEX_COLOR_TAG,
+        #         message=_('Поле должно содержать HEX-код выбранного цвета.')
+        #     )
+        # ]
     )
     slug = models.SlugField(
         verbose_name='Слаг тэга',
@@ -42,7 +50,7 @@ class Ingredients(models.Model):
     """
     name = models.CharField(
         verbose_name='Наименование',
-        unique=True,
+        # unique=True,
         max_length=settings.MAX_LENGTH_NAME_INGREDIENT,
     )
     measurement_unit = models.CharField(

@@ -12,7 +12,7 @@ class User(ValidateUsername, AbstractUser):
         max_length=settings.MAX_LENGTH_EMAIL,
     )
     username = models.CharField(
-        verbose_name='Ник',
+        # verbose_name='Ник',
         unique=True,
         max_length=settings.MAX_LENGTH_USERNAME,
     )

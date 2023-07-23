@@ -1,10 +1,10 @@
 from django.core.management import BaseCommand
-from recipes.models import Tag
+from recipes.models import Tags
 
 
 class Command(BaseCommand):
-    help = ('Создание тегов. Запуск: python '
-            'manage.py load_tags.py.')
+    help = ('Создание тегов. Запуск: '
+            'python manage.py load_tags.py.')
 
     def handle(self, *args, **kwargs):
         tags = (
@@ -14,7 +14,7 @@ class Command(BaseCommand):
         )
         for tag in tags:
             name, color, slug = tag
-            Tag.objects.get_or_create(
+            Tags.objects.get_or_create(
                 name=name,
                 color=color,
                 slug=slug
