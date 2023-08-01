@@ -1,5 +1,5 @@
 from django.core.management import BaseCommand
-from recipes.models import Tags
+from recipes.models import Tag
 
 
 class Command(BaseCommand):
@@ -9,12 +9,12 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         tags = (
             ('Завтрак', '#E26C2D', 'breakfast'),
-            ('Обед', '#008000', 'dinner'),
-            ('Ужин', '#7366BD', 'supper'),
+            ('Обед', '#008000', 'lunch'),
+            ('Ужин', '#7366BD', 'dinner'),
         )
         for tag in tags:
             name, color, slug = tag
-            Tags.objects.get_or_create(
+            Tag.objects.get_or_create(
                 name=name,
                 color=color,
                 slug=slug

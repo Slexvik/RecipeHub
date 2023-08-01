@@ -3,7 +3,7 @@ import json
 
 from django.conf import settings
 from django.core.management import BaseCommand
-from recipes.models import Ingredients
+from recipes.models import Ingredient
 
 FILE: str = f'{settings.BASE_DIR}/data/ingredients.json'
 
@@ -12,7 +12,7 @@ def import_json_data():
     with open(FILE, 'r', encoding='utf-8') as file:
         data = json.load(file)
         for note in data:
-            Ingredients.objects.get_or_create(**note)
+            Ingredient.objects.get_or_create(**note)
 
 
 class Command(BaseCommand):

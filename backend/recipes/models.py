@@ -6,18 +6,16 @@ from django.db import models
 User = get_user_model()
 
 
-class Tags(models.Model):
-    """
+class Tag(models.Model):
 
-    """
     name = models.CharField(
         verbose_name='Название',
         max_length=settings.MAX_LENGTH_NAME_TAG,
-        unique=True,
+        # unique=True,
     )
     color = models.CharField(  # colorfield https://pypi.org/project/django-colorfield/
         verbose_name='Цвет',
-        unique=True,
+        # unique=True,
         max_length=settings.MAX_LENGTH_COLOR_TAG,
         # verbose_name=_('Цвет в HEX'),
         # null=True,
@@ -32,7 +30,6 @@ class Tags(models.Model):
         verbose_name='Слаг тэга',
         unique=True,
         max_length=settings.MAX_LENGTH_SLUG_TAG,
-        # db_index=False,
     )
 
     class Meta:
@@ -44,10 +41,8 @@ class Tags(models.Model):
         return f'{self.name}, цвет: {self.color}'
 
 
-class Ingredients(models.Model):
-    """
+class Ingredient(models.Model):
 
-    """
     name = models.CharField(
         verbose_name='Наименование',
         # unique=True,
@@ -67,29 +62,13 @@ class Ingredients(models.Model):
                 fields=['name', 'measurement_unit'],
                 name='unique_ingredient',
             ),
-            # models.CheckConstraint(
-            #     check=models.Q(name__length__gt=0),
-            #     name="\n%(app_label)s_%(class)s_name is empty\n",
-            # ),
-            # models.CheckConstraint(
-            #     check=models.Q(measurement_unit__length__gt=0),
-            #     name="\n%(app_label)s_%(class)s_measurement_unit is empty\n",
-            # ),
         ]
 
     def __str__(self):
         return f'{self.name} {self.measurement_unit}'
 
-    # def clean(self):
-    #     self.name = self.name.lower()
-    #     self.measurement_unit = self.measurement_unit.lower()
-    #     super().clean()
 
-
-class Recipes(models.Model):
-    """
-
-    """
+class Recipe(models.Model):
 
     name = models.CharField(
         verbose_name='Название рецепта',
@@ -102,15 +81,15 @@ class Recipes(models.Model):
         related_name='recipes',
     )
     tags = models.ManyToManyField(
-        Tags,
+        Tag,
         verbose_name='Тэги',
         related_name='recipes',
     )
     ingredients = models.ManyToManyField(
-        Ingredients,
-        verbose_name='Состав блюда',
+        Ingredient,
+        verbose_name='Ингридиенты',
         through='RecipeIngredient',
-        related_name="recipes",
+        related_name="recipes",  # нужно ли?
     )
     text = models.TextField(
         verbose_name='Описание рецепта',
@@ -140,7 +119,6 @@ class Recipes(models.Model):
     )
 
     class Meta:
-        # default_related_name = 'recipes'
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
         ordering = ('-pub_date',)
@@ -149,10 +127,6 @@ class Recipes(models.Model):
                 fields=['name', 'author'],
                 name='unique_for_author',
             ),
-            # models.CheckConstraint(
-            #     check=Q(name__length__gt=0),
-            #     name="\n%(app_label)s_%(class)s_name is empty\n",
-            # ),
         )
 
     def __str__(self):
@@ -160,17 +134,15 @@ class Recipes(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    """
-
-    """
+    
     recipe = models.ForeignKey(
-        to=Recipes,
+        Recipe,
         on_delete=models.CASCADE,
         verbose_name='Рецепт',
         related_name='recipes',
     )
     ingredient = models.ForeignKey(
-        to=Ingredients,
+        Ingredient,
         on_delete=models.CASCADE,
         verbose_name='Ингредиент',
         related_name='ingredients',
@@ -206,14 +178,14 @@ class RecipeIngredient(models.Model):
         )
 
 
-class Favorites(models.Model):
+class Favorite(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         verbose_name='Пользователь'
     )
     recipe = models.ForeignKey(
-        Recipes,
+        Recipe,
         on_delete=models.CASCADE,
         verbose_name='Избранный рецепт'
     )
@@ -240,7 +212,7 @@ class ShoppingCart(models.Model):
         verbose_name='Корзина пользователя'
     )
     recipe = models.ForeignKey(
-        Recipes,
+        Recipe,
         on_delete=models.CASCADE,
         verbose_name='Список рецептов'
     )
