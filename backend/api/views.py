@@ -1,36 +1,31 @@
 from django.contrib.auth import get_user_model
-from djoser.views import UserViewSet
-from django.shortcuts import get_object_or_404
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from rest_framework.decorators import action
-from rest_framework import exceptions, status
-from rest_framework.response import Response
-from rest_framework.permissions import (AllowAny, IsAuthenticated)
-
+from django.db.models import F, Sum
 from django.http import HttpResponse
-from django.db.models import Sum, F
+from djoser.views import UserViewSet
+from rest_framework.decorators import action
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from api.serializers import (
-    IngredientSerializer,
-    TagSerializer,
-    RecipeSerializer,
-    RecipeCreateSerializer,
-    SubscriptionSerializer,
-    FavoriteSerializer,
-    ShoppingCartSerializer,
-    FollowSerializer
-)
 from api.filters import IngredientFilter, RecipeFilter
+from api.mixins import CreateDeleteMixin
 from api.pagination import CustomPagination
 from api.permissions import IsAuthorOrReadOnly
-from api.mixins import CreateDeleteMixin
+from api.serializers import (
+    FavoriteSerializer,
+    FollowSerializer,
+    IngredientSerializer,
+    RecipeCreateSerializer,
+    RecipeSerializer,
+    ShoppingCartSerializer,
+    SubscriptionSerializer,
+    TagSerializer,
+)
 from recipes.models import (
+    Favorite,
     Ingredient,
-    Tag,
     Recipe,
     RecipeIngredient,
-    Favorite,
-    ShoppingCart
+    ShoppingCart,
+    Tag,
 )
 from users.models import Follow
 

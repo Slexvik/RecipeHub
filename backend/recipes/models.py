@@ -1,6 +1,6 @@
 from django.conf import settings
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth import get_user_model
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 User = get_user_model()
@@ -36,7 +36,6 @@ class Ingredient(models.Model):
 
     name = models.CharField(
         verbose_name='Наименование',
-        # unique=True,
         max_length=settings.MAX_LENGTH_NAME_INGREDIENT,
     )
     measurement_unit = models.CharField(
@@ -157,7 +156,7 @@ class RecipeIngredient(models.Model):
         verbose_name_plural = 'Состав рецептов'
         constraints = [
             models.UniqueConstraint(
-                fields=["recipe",   "ingredient"],
+                fields=["recipe", "ingredient"],
                 name="unique_ingredient_in_recipe",
             )
         ]

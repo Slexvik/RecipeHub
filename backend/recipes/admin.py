@@ -1,7 +1,13 @@
 from django.contrib import admin
-from recipes.models import (Favorite, Ingredient, Recipe,
-                            RecipeIngredient, ShoppingCart, Tag)
 
+from recipes.models import (
+    Favorite,
+    Ingredient,
+    Recipe,
+    RecipeIngredient,
+    ShoppingCart,
+    Tag,
+)
 
 admin.site.site_header = "Администрирование Foodgram"
 
@@ -51,13 +57,6 @@ class IngredientAdmin(admin.ModelAdmin):
     list_filter = ('name',)
 
 
-
-
-# @admin.register(RecipeIngredient)
-# class RecipeIngredientAdmin(admin.ModelAdmin):
-#     list_display = ('id', 'recipe', 'ingredient', 'amount')
-#     search_fields = ('recipe', 'ingredient')
-#     list_filter = ('recipe', 'ingredient')
 admin.site.register(RecipeIngredient)
 admin.site.register(Favorite)
 admin.site.register(ShoppingCart)

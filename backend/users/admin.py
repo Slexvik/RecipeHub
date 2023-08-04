@@ -26,4 +26,3 @@ class FollowAdmin(admin.ModelAdmin):
         'following',
     )
     empty_value_display = '-пусто-'
-# admin.site.register(Follow)
