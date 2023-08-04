@@ -1,26 +1,37 @@
 from django.contrib.auth import get_user_model
 from djoser.views import UserViewSet
-# from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from rest_framework.filters import SearchFilter
 from rest_framework.decorators import action
 from rest_framework import exceptions, status
 from rest_framework.response import Response
+from rest_framework.permissions import (AllowAny, IsAuthenticated)
 
 from django.http import HttpResponse
 from django.db.models import Sum, F
 
 from api.serializers import (
-    IngredientSerializer, TagSerializer, RecipeSerializer,
-    RecipeCreateSerializer, SubscriptionSerializer, FavoriteSerializer,
-    ShoppingCartSerializer, FollowSerializer
+    IngredientSerializer,
+    TagSerializer,
+    RecipeSerializer,
+    RecipeCreateSerializer,
+    SubscriptionSerializer,
+    FavoriteSerializer,
+    ShoppingCartSerializer,
+    FollowSerializer
 )
 from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import CustomPagination
-from api.permissions import IsAuthenticatedOrAdmin
+from api.permissions import IsAuthorOrReadOnly
 from api.mixins import CreateDeleteMixin
-from recipes.models import Ingredient, Tag, Recipe, RecipeIngredient, Favorite, ShoppingCart
+from recipes.models import (
+    Ingredient,
+    Tag,
+    Recipe,
+    RecipeIngredient,
+    Favorite,
+    ShoppingCart
+)
 from users.models import Follow
 
 User = get_user_model()
@@ -28,8 +39,6 @@ User = get_user_model()
 
 class UserSubscribeView(CreateDeleteMixin, UserViewSet):
     pagination_class = CustomPagination
-    # queryset = User.objects.all()
-    # serializer_class = UserCreateSerializer
 
     @action(detail=False)
     def subscriptions(self, request):
@@ -75,13 +84,19 @@ class IngredientVeiwSet(ReadOnlyModelViewSet):
 class RecipeVeiwSet(CreateDeleteMixin, ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    # permission_classes = (IsAuthorOrStaffOrReadOnly, IsAuthenticatedOrReadOnly)
+    permission_classes = (IsAuthorOrReadOnly,)
     filterset_class = RecipeFilter
 
+    def get_queryset(self):
+        recipe = Recipe.objects.prefetch_related(
+            'recipes__ingredient', 'tags'
+        ).all()
+        return recipe
+
     def get_serializer_class(self):
-        if self.action == 'create':
-            return RecipeCreateSerializer
-        return RecipeSerializer
+        if self.request.method == 'GET':
+            return RecipeSerializer
+        return RecipeCreateSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -111,10 +126,10 @@ class RecipeVeiwSet(CreateDeleteMixin, ModelViewSet):
     def remove_from_cart(self, request, pk):
         return self.delete_item(ShoppingCart, user=request.user, recipe=pk)
 
-    def create_shoping_cart(self, user):
+    @action(methods=['get'], detail=False)
+    def download_shopping_cart(self, request):
         shopping_cart = [
-            f"Список покупок для:\n{user.first_name}\n"
-            # f"{dt.now().strftime(DATE_TIME_FORMAT)}\n"
+            f"Список покупок для:\n{request.user.first_name}\n\n"
         ]
 
         items = RecipeIngredient.objects.select_related(
@@ -122,7 +137,7 @@ class RecipeVeiwSet(CreateDeleteMixin, ModelViewSet):
         )
 
         items = items.filter(
-            recipe__shopping__user=user,
+            recipe__shopping__user=request.user,
         )
 
         items = items.values(
@@ -134,51 +149,15 @@ class RecipeVeiwSet(CreateDeleteMixin, ModelViewSet):
             total=Sum('amount'),
         ).order_by('-total')
 
-        ing_list = ''.join([
+        text = '\n'.join([
             f"{item['name']} ({item['units']}) - {item['total']}"
             for item in items
         ])
+        shopping_cart.extend(text)
 
-        shopping_cart.extend(ing_list)
+        shopping_cart.append("\n\nРассчитано в Foodgram")
+        filename = "foodgram_shoping_cart.txt"
 
-        shopping_cart.append("\nРассчитано в Foodgram")
-        return "".join(shopping_cart)
-
-    # @action(methods=['get'], detail=False)
-    # def download_shopping_cart(self, request):
-    #     items = RecipeIngredient.objects.select_related(
-    #         'recipe', 'ingredient'
-    #     )
-
-    #     items = items.filter(
-    #         recipe__shopping__user=request.user,
-    #     )
-
-    #     items = items.values(
-    #         'ingredient__name',
-    #         'ingredient__measurement_unit'
-    #     ).annotate(
-    #         name=F('ingredient__name'),
-    #         units=F('ingredient__measurement_unit'),
-    #         total=Sum('amount'),
-    #     ).order_by('-total')
-
-    #     text = '\n'.join([
-    #         f"{item['name']} ({item['units']}) - {item['total']}"
-    #         for item in items
-    #     ])
-    #     filename = "foodgram_shoping_cart.txt"
-    #     response = HttpResponse(text, content_type='text/plain')
-    #     response['Content-Disposition'] = f'attachment; filename={filename}'
-    #     return response
-        
-    @action(methods=['get'], detail=False)
-    def download_shopping_cart(self, request):
-        user = self.request.user
-        filename = f"{user.username}_shopping_cart.txt"
-        shopping_cart = self.create_shoping_cart(user)
-        response = HttpResponse(
-            shopping_cart, content_type="text.txt; charset=utf-8"
-        )
-        response["Content-Disposition"] = f"attachment; filename={filename}"
+        response = HttpResponse(shopping_cart, content_type='text/plain')
+        response['Content-Disposition'] = f'attachment; filename={filename}'
         return response

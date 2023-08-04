@@ -11,20 +11,11 @@ class Tag(models.Model):
     name = models.CharField(
         verbose_name='Название',
         max_length=settings.MAX_LENGTH_NAME_TAG,
-        # unique=True,
     )
     color = models.CharField(  # colorfield https://pypi.org/project/django-colorfield/
         verbose_name='Цвет',
-        # unique=True,
         max_length=settings.MAX_LENGTH_COLOR_TAG,
-        # verbose_name=_('Цвет в HEX'),
-        # null=True,
-        # validators=[
-        #     RegexValidator(
-        #         REGEX_COLOR_TAG,
-        #         message=_('Поле должно содержать HEX-код выбранного цвета.')
-        #     )
-        # ]
+
     )
     slug = models.SlugField(
         verbose_name='Слаг тэга',
@@ -89,7 +80,7 @@ class Recipe(models.Model):
         Ingredient,
         verbose_name='Ингридиенты',
         through='RecipeIngredient',
-        related_name="recipes",  # нужно ли?
+        related_name="recipes",
     )
     text = models.TextField(
         verbose_name='Описание рецепта',
@@ -134,7 +125,7 @@ class Recipe(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    
+
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,

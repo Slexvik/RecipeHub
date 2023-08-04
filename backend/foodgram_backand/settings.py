@@ -41,9 +41,9 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'djoser',
     'django_filters',
-    'api.apps.ApiConfig',
-    'recipes.apps.RecipesConfig',
     'users.apps.UsersConfig',
+    'recipes.apps.RecipesConfig',
+    'api.apps.ApiConfig',
 ]
 
 MIDDLEWARE = [
@@ -134,14 +134,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "users.User"
 
 REST_FRAMEWORK = {
-    # 'DJANGO_SETTINGS_MODULE': 'backend.settings',
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',  # temp
+        'rest_framework.authentication.SessionAuthentication',  # для теста апи в браузере
     ],
-    # 'DEFAULT_PERMISSION_CLASSES': [
-    #     'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    # ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
     'DEFAULT_PAGINATION_CLASS': 'api.pagination.CustomPagination',
     'PAGE_SIZE': 6,
     "DEFAULT_FILTER_BACKENDS": [
@@ -150,19 +149,13 @@ REST_FRAMEWORK = {
 }
 
 DJOSER = {
-    # 'HIDE_USERS': False,
+    'HIDE_USERS': False,
     'LOGIN_FIELD': 'email',
     'SERIALIZERS': {
-        # 'set_password': 'djoser.serializers.SetPasswordSerializer',
         'user_create': 'api.serializers.CustomUserCreateSerializer',
         'user': 'api.serializers.CustomUserSerializer',
         'current_user': 'api.serializers.CustomUserSerializer',
     },
-    # 'PERMISSIONS': {
-    #     'user_create': ['rest_framework.permissions.AllowAny'],
-    #     'user_list': ['rest_framework.permissions.AllowAny'],
-    #     'user': ['rest_framework.permissions.IsAuthenticated'],
-    # },
 }
 
 # Константы для приложения users
