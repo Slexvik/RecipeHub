@@ -12,7 +12,7 @@ class Tag(models.Model):
         verbose_name='Название',
         max_length=settings.MAX_LENGTH_NAME_TAG,
     )
-    color = models.CharField(  # colorfield https://pypi.org/project/django-colorfield/
+    color = models.CharField(
         verbose_name='Цвет',
         max_length=settings.MAX_LENGTH_COLOR_TAG,
 
@@ -84,7 +84,7 @@ class Recipe(models.Model):
     text = models.TextField(
         verbose_name='Описание рецепта',
         max_length=settings.MAX_LENGTH_TEXT_RECIPE,
-        )
+    )
     image = models.ImageField(
         verbose_name='Изображение рецепта',
         upload_to='recipe_images/',

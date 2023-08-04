@@ -80,7 +80,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
             'name',
             'measurement_unit',
             'amount',
-        )    
+        )
 
 
 class RecipeSerializer(serializers.ModelSerializer):
