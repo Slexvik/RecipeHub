@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework import exceptions, fields, serializers
+from rest_framework import exceptions, serializers
 
 from recipes.models import (
     Favorite,
@@ -18,7 +18,7 @@ User = get_user_model()
 
 
 class CustomUserSerializer(UserSerializer):
-    is_subscribed = fields.SerializerMethodField()
+    is_subscribed = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
@@ -30,10 +30,6 @@ class CustomUserSerializer(UserSerializer):
             'last_name',
             'is_subscribed',
         )
-
-    def get_is_subscribed(self, obj):
-        request = self.context.get("request")
-        return obj.follower.filter(follower=request.user).exists()
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
@@ -85,9 +81,9 @@ class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     author = CustomUserSerializer(read_only=True)
     ingredients = RecipeIngredientSerializer(many=True, source='recipes')
-    is_favorited = serializers.SerializerMethodField()
-    is_in_shopping_cart = serializers.SerializerMethodField()
     image = Base64ImageField()
+    is_favorited = serializers.BooleanField(read_only=True)
+    is_in_shopping_cart = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Recipe
@@ -103,18 +99,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time',
         )
-
-    def get_is_favorited(self, obj):
-        request = self.context.get('request')
-        if request.user.is_anonymous:
-            return False
-        return obj.favorite.filter(user=request.user).exists()
-
-    def get_is_in_shopping_cart(self, obj):
-        request = self.context.get('request')
-        if request.user.is_anonymous:
-            return False
-        return obj.shoppingcart.filter(user=request.user).exists()
 
 
 class RecipeIngredientCreateSerialazer(serializers.ModelSerializer):
@@ -163,11 +147,12 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise exceptions.ValidationError('Ингредиенты не уникальны.')
         return obj
 
-    def validate(self, data):
-        tags = data['tags']
+    def validate_tags(self, obj):
+        tags = self.initial_data.get('tags')
         if not tags:
             raise exceptions.ValidationError(
                 'Добавьте  тэг для рецепта!')
+        return obj
 
     def validate_cooking_time(self, cooking_time):
         if int(cooking_time) < 1:

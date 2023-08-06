@@ -12,18 +12,18 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+import environ
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+env = environ.Env(
+    SECRET_KEY=(str, 'secretkey'),
+    DEBUG=(bool, True)
+)
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
+SECRET_KEY = env('SECRET_KEY')
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-r*5jw#iw%dc)nqj!5ecv*m@5vhyz5%bsk@7j^il0qp-m*dnoyd'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = []
 
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'djoser',
     'django_filters',
+    'colorfield',
     'users.apps.UsersConfig',
     'recipes.apps.RecipesConfig',
     'api.apps.ApiConfig',

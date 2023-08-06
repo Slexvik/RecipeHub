@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models.expressions import Exists, OuterRef, Value
 from djoser.views import UserViewSet
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
@@ -33,6 +34,18 @@ User = get_user_model()
 
 class UserSubscribeView(CreateDeleteMixin, UserViewSet):
     pagination_class = LimitPageNumberPagination
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return User.objects.annotate(
+                is_subscribed=Exists(
+                    self.request.user.follower.filter(
+                        following=OuterRef('id'))
+                )).prefetch_related(
+                    'follower', 'following'
+            )
+        else:
+            User.objects.annotate(is_subscribed=Value(False))
 
     @action(detail=False)
     def subscriptions(self, request):
@@ -80,11 +93,36 @@ class RecipeVeiwSet(CreateDeleteMixin, ModelViewSet):
     pagination_class = LimitPageNumberPagination
     filterset_class = RecipeFilter
 
+    # def dispatch(self, request, *args, **kwargs):
+    #     ''' Выводит количество и запросы к БД.
+    #     Оставил на время ревью.
+    #     '''
+    #     res = super().dispatch(request, *args, **kwargs)
+    #     from django.db import connection
+    #     print('##################', len(connection.queries), '#############')
+    #     for q in connection.queries:
+    #         print('>>>', q['sql'], '<<<')
+    #     return res
+
     def get_queryset(self):
-        recipe = Recipe.objects.select_related('author').prefetch_related(
-            'recipes__ingredient', 'tags'
-        ).all()
-        return recipe
+        if self.request.user.is_authenticated:
+            return Recipe.objects.annotate(
+                is_favorited=Exists(
+                    Favorite.objects.filter(
+                        user=self.request.user, recipe=OuterRef('id'))),
+                is_in_shopping_cart=Exists(
+                    ShoppingCart.objects.filter(
+                        user=self.request.user, recipe=OuterRef('id')))
+            ).select_related('author').prefetch_related(
+                'recipes__ingredient', 'tags'
+            )
+        else:
+            return Recipe.objects.annotate(
+                is_in_shopping_cart=Value(False),
+                is_favorited=Value(False),
+            ).select_related('author').prefetch_related(
+                'recipes__ingredient', 'tags'
+            )
 
     def get_serializer_class(self):
         if self.request.method == 'GET':

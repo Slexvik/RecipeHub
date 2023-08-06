@@ -18,18 +18,6 @@ class User(ValidateUsername, AbstractUser):
         unique=True,
         max_length=settings.MAX_LENGTH_IN_NAME,
     )
-    # first_name = models.CharField(
-    #     verbose_name='Имя',
-    #     max_length=settings.MAX_LENGTH_IN_NAME,
-    # )
-    # last_name = models.CharField(
-    #     verbose_name='Фамилия',
-    #     max_length=settings.MAX_LENGTH_IN_NAME,
-    # )
-    # password = models.CharField(
-    #     verbose_name='Пароль',
-    #     max_length=settings.MAX_LENGTH_IN_NAME,
-    # )
 
     class Meta:
         verbose_name = 'Пользователь'
