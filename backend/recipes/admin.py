@@ -9,7 +9,7 @@ from recipes.models import (
     Tag,
 )
 
-admin.site.site_header = "Администрирование Foodgram"
+admin.site.site_header = 'Администрирование Foodgram'
 
 
 class RecipeIngredientInline(admin.TabularInline):
@@ -43,7 +43,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='в избранном')
     def favorites_count(self, recipe):
-        return recipe.favorites.count()
+        return recipe.favorite.count()
 
 
 @admin.register(Ingredient)

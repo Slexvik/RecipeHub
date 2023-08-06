@@ -32,10 +32,8 @@ class CustomUserSerializer(UserSerializer):
         )
 
     def get_is_subscribed(self, obj):
-        user = self.context.get("request").user
-        if user.is_anonymous:
-            return False
-        return Follow.objects.filter(follower=user, following=obj).exists()
+        request = self.context.get("request")
+        return obj.follower.filter(follower=request.user).exists()
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
@@ -110,15 +108,13 @@ class RecipeSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request.user.is_anonymous:
             return False
-        return obj.favorites.filter(user=request.user).exists()
+        return obj.favorite.filter(user=request.user).exists()
 
     def get_is_in_shopping_cart(self, obj):
         request = self.context.get('request')
         if request.user.is_anonymous:
             return False
-        return ShoppingCart.objects.filter(
-            user=request.user, recipe=obj
-        ).exists()
+        return obj.shoppingcart.filter(user=request.user).exists()
 
 
 class RecipeIngredientCreateSerialazer(serializers.ModelSerializer):
@@ -167,6 +163,12 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise exceptions.ValidationError('Ингредиенты не уникальны.')
         return obj
 
+    def validate(self, data):
+        tags = data['tags']
+        if not tags:
+            raise exceptions.ValidationError(
+                'Добавьте  тэг для рецепта!')
+
     def validate_cooking_time(self, cooking_time):
         if int(cooking_time) < 1:
             raise serializers.ValidationError(
@@ -184,6 +186,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
+        validated_data['author'] = self.context['request'].user
         instance = super().create(validated_data)
         self.__create_ingredients(instance, ingredients)
         return instance

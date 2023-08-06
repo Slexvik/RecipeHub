@@ -131,7 +131,7 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = "users.User"
+AUTH_USER_MODEL = 'users.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -141,9 +141,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'api.pagination.CustomPagination',
-    'PAGE_SIZE': 6,
-    "DEFAULT_FILTER_BACKENDS": [
+    'DEFAULT_FILTER_BACKENDS': [
         "django_filters.rest_framework.DjangoFilterBackend",
     ],
 }
@@ -156,25 +154,25 @@ DJOSER = {
         'user': 'api.serializers.CustomUserSerializer',
         'current_user': 'api.serializers.CustomUserSerializer',
     },
+    'PERMISSIONS': {
+        'user': ['rest_framework.permissions.IsAuthenticated'],
+        'user_list': ['rest_framework.permissions.AllowAny'],
+    },
 }
 
 # Константы для приложения users
 INVALID_FORBIDDEN = ('me', 'admin', 'superuser')
 MAX_LENGTH_EMAIL = 254
-MAX_LENGTH_USERNAME = 150
-MAX_LENGTH_FIRST_NAME = 150
-MAX_LENGTH_LAST_NAME = 150
-MAX_LENGTH_PASSWORD_NAME = 150
+MAX_LENGTH_IN_NAME = 150
 
 # Константы для приложения recipes
-MAX_LENGTH_NAME_INGREDIENT = 200
+MAX_LENGTH_NAME_IN_TITLE = 200
 MAX_LENGTH_UNIT_MEASUREMENT = 200
-MAX_LENGTH_NAME_TAG = 200
 MAX_LENGTH_COLOR_TAG = 7
-MAX_LENGTH_SLUG_TAG = 200
-MAX_LENGTH_NAME_RECIPE = 200
 MAX_LENGTH_TEXT_RECIPE = 3000
 MIN_COOKING_TIME = 1
 MAX_COOKING_TIME = 3600
 MIN_AMOUNT = 1
 MAX_AMOUNT = 100
+
+PAGE_SIZE_PAGINATION = 6

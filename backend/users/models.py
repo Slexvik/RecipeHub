@@ -6,6 +6,9 @@ from users.validators import ValidateUsername
 
 
 class User(ValidateUsername, AbstractUser):
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ('first_name', 'last_name', 'username')
+
     email = models.EmailField(
         verbose_name='Электронная почта',
         unique=True,
@@ -13,20 +16,20 @@ class User(ValidateUsername, AbstractUser):
     )
     username = models.CharField(
         unique=True,
-        max_length=settings.MAX_LENGTH_USERNAME,
+        max_length=settings.MAX_LENGTH_IN_NAME,
     )
-    first_name = models.CharField(
-        verbose_name='Имя',
-        max_length=settings.MAX_LENGTH_FIRST_NAME,
-    )
-    last_name = models.CharField(
-        verbose_name='Фамилия',
-        max_length=settings.MAX_LENGTH_LAST_NAME,
-    )
-    password = models.CharField(
-        verbose_name="Пароль",
-        max_length=settings.MAX_LENGTH_PASSWORD_NAME,
-    )
+    # first_name = models.CharField(
+    #     verbose_name='Имя',
+    #     max_length=settings.MAX_LENGTH_IN_NAME,
+    # )
+    # last_name = models.CharField(
+    #     verbose_name='Фамилия',
+    #     max_length=settings.MAX_LENGTH_IN_NAME,
+    # )
+    # password = models.CharField(
+    #     verbose_name='Пароль',
+    #     max_length=settings.MAX_LENGTH_IN_NAME,
+    # )
 
     class Meta:
         verbose_name = 'Пользователь'
