@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
-from django.db.models.expressions import Exists, OuterRef, Value
+from django.db.models import F, Sum
+from django.db.models.expressions import Value
 from djoser.views import UserViewSet
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
@@ -14,6 +15,7 @@ from api.serializers import (
     IngredientSerializer,
     RecipeCreateSerializer,
     RecipeSerializer,
+    RecipeShortSerializer,
     ShoppingCartSerializer,
     SubscriptionSerializer,
     TagSerializer,
@@ -35,18 +37,6 @@ User = get_user_model()
 class UserSubscribeView(CreateDeleteMixin, UserViewSet):
     pagination_class = LimitPageNumberPagination
 
-    def get_queryset(self):
-        if self.request.user.is_authenticated:
-            return User.objects.annotate(
-                is_subscribed=Exists(
-                    self.request.user.follower.filter(
-                        following=OuterRef('id'))
-                )).prefetch_related(
-                    'follower', 'following'
-            )
-        else:
-            User.objects.annotate(is_subscribed=Value(False))
-
     @action(detail=False)
     def subscriptions(self, request):
 
@@ -66,7 +56,14 @@ class UserSubscribeView(CreateDeleteMixin, UserViewSet):
             'follower': self.request.user.id,
             'following': id
         }
-        return self.add_item(SubscriptionSerializer, data, request)
+        return self.add_item(
+            SubscriptionSerializer,
+            FollowSerializer,
+            User,
+            data,
+            request,
+            id,
+        )
 
     @subscribe.mapping.delete
     def unsubscribe(self, request, id):
@@ -106,23 +103,13 @@ class RecipeVeiwSet(CreateDeleteMixin, ModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
-            return Recipe.objects.annotate(
-                is_favorited=Exists(
-                    Favorite.objects.filter(
-                        user=self.request.user, recipe=OuterRef('id'))),
-                is_in_shopping_cart=Exists(
-                    ShoppingCart.objects.filter(
-                        user=self.request.user, recipe=OuterRef('id')))
-            ).select_related('author').prefetch_related(
-                'recipes__ingredient', 'tags'
-            )
-        else:
-            return Recipe.objects.annotate(
-                is_in_shopping_cart=Value(False),
-                is_favorited=Value(False),
-            ).select_related('author').prefetch_related(
-                'recipes__ingredient', 'tags'
-            )
+            return Recipe.objects.user_annotation(self.request.user)
+        return Recipe.objects.annotate(
+            is_in_shopping_cart=Value(False),
+            is_favorited=Value(False),
+        ).select_related('author').prefetch_related(
+            'recipes__ingredient', 'tags'
+        )
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -135,7 +122,14 @@ class RecipeVeiwSet(CreateDeleteMixin, ModelViewSet):
             'user': request.user.id,
             'recipe': pk
         }
-        return self.add_item(FavoriteSerializer, data, request)
+        return self.add_item(
+            FavoriteSerializer,
+            RecipeShortSerializer,
+            Recipe,
+            data,
+            request,
+            pk,
+        )
 
     @favorite.mapping.delete
     def unfavorite(self, request, pk):
@@ -147,7 +141,14 @@ class RecipeVeiwSet(CreateDeleteMixin, ModelViewSet):
             'user': request.user.id,
             'recipe': pk
         }
-        return self.add_item(ShoppingCartSerializer, data, pk)
+        return self.add_item(
+            ShoppingCartSerializer,
+            RecipeShortSerializer,
+            Recipe,
+            data,
+            request,
+            pk,
+        )
 
     @add_to_cart.mapping.delete
     def remove_from_cart(self, request, pk):
@@ -156,11 +157,14 @@ class RecipeVeiwSet(CreateDeleteMixin, ModelViewSet):
     @action(methods=['get'], detail=False)
     def download_shopping_cart(self, request):
         user = request.user
-        items = RecipeIngredient.objects.select_related(
-            'recipe', 'ingredient'
-        )
-
-        items = items.filter(
-            recipe__shoppingcart__user=user,
-        )
+        items = RecipeIngredient.objects.filter(
+            recipe__shoppingcart__user=user
+        ).values(
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(
+            name=F('ingredient__name'),
+            units=F('ingredient__measurement_unit'),
+            total=Sum('amount')
+        ).order_by('name')
         return create_shopping_cart(user, items)

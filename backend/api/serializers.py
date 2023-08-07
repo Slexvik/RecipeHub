@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework import exceptions, serializers
+from rest_framework import exceptions, fields, serializers
 
 from recipes.models import (
     Favorite,
@@ -18,7 +18,7 @@ User = get_user_model()
 
 
 class CustomUserSerializer(UserSerializer):
-    is_subscribed = serializers.BooleanField(read_only=True)
+    is_subscribed = fields.SerializerMethodField()
 
     class Meta:
         model = User
@@ -30,6 +30,12 @@ class CustomUserSerializer(UserSerializer):
             'last_name',
             'is_subscribed',
         )
+
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        if request is None or request.user.is_authenticated:
+            return False
+        return obj.follower.filter(follower=request.user).exists()
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
@@ -186,11 +192,23 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
+        from django.db.models.expressions import Exists, OuterRef
+        request = self.context.get('request')
+        annotated_instance = Recipe.objects.annotate(
+            is_favorited=Exists(
+                Favorite.objects.filter(
+                    user=request.user, recipe=OuterRef('id'))),
+            is_in_shopping_cart=Exists(
+                ShoppingCart.objects.filter(
+                    user=request.user, recipe=OuterRef('id')))
+        ).select_related('author').prefetch_related(
+            'recipes__ingredient', 'tags'
+        ).get(id=instance.id)
+
         return RecipeSerializer(
-            instance,
-            context={
-                'request': self.context.get('request')
-            }).data
+            annotated_instance,
+            context={'request': self.context.get('request')}
+        ).data
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):
@@ -206,7 +224,7 @@ class RecipeShortSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(CustomUserSerializer):
-    recipes = serializers.SerializerMethodField()
+    recipes = RecipeShortSerializer(read_only=True, many=True)
     recipes_count = serializers.SerializerMethodField()
 
     class Meta(CustomUserSerializer.Meta):
@@ -214,19 +232,6 @@ class FollowSerializer(CustomUserSerializer):
             'recipes',
             'recipes_count',
         )
-
-    def get_recipes(self, obj):
-
-        limit = self.context['request'].query_params.get('limit')
-        recipes = obj.recipes.all()
-        if limit:
-            recipes = recipes[:int(limit)]
-
-        return RecipeShortSerializer(
-            recipes,
-            many=True,
-            context=self.context
-        ).data
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()

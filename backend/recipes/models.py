@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.expressions import Exists, OuterRef
 
 User = get_user_model()
 
@@ -59,6 +60,18 @@ class Ingredient(models.Model):
         return f'{self.name} {self.measurement_unit}'
 
 
+class RecipeQuerySet(models.QuerySet):
+    def user_annotation(self, user):
+        return self.annotate(
+            is_favorited=Exists(
+                Favorite.objects.filter(user=user, recipe=OuterRef('id'))),
+            is_in_shopping_cart=Exists(
+                ShoppingCart.objects.filter(user=user, recipe=OuterRef('id')))
+        ).select_related('author').prefetch_related(
+            'recipes__ingredient', 'tags'
+        )
+
+
 class Recipe(models.Model):
 
     name = models.CharField(
@@ -108,6 +121,7 @@ class Recipe(models.Model):
         auto_now_add=True,
         editable=False,
     )
+    objects = RecipeQuerySet.as_manager()
 
     class Meta:
         verbose_name = 'Рецепт'
