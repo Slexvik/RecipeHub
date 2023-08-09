@@ -5,7 +5,7 @@ from recipes.models import Tag
 
 class Command(BaseCommand):
     help = ('Создание тегов. Запуск: '
-            'python manage.py load_tags.py.')
+            'python manage.py load_tags')
 
     def handle(self, *args, **kwargs):
         tags = (

@@ -161,7 +161,7 @@ class RecipeIngredient(models.Model):
             ),
             MaxValueValidator(
                 settings.MAX_AMOUNT,
-                message='Блюдо содержит больше 100 индигриентов',
+                message='Блюдо содержит больше 1000 индигриентов',
             ),
         ],
     )
