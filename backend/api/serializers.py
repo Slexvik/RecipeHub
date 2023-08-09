@@ -33,9 +33,10 @@ class CustomUserSerializer(UserSerializer):
 
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
-        if request is None or request.user.is_authenticated:
-            return False
-        return obj.follower.filter(follower=request.user).exists()
+        return (
+            request and request.user.is_authenticated
+            and obj.follower.filter(follower=request.user).exists()
+        )
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
@@ -225,6 +226,7 @@ class RecipeShortSerializer(serializers.ModelSerializer):
 
 class FollowSerializer(CustomUserSerializer):
     recipes = RecipeShortSerializer(read_only=True, many=True)
+    # recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
     class Meta(CustomUserSerializer.Meta):
@@ -232,6 +234,19 @@ class FollowSerializer(CustomUserSerializer):
             'recipes',
             'recipes_count',
         )
+
+    def get_recipes(self, obj):
+
+        limit = self.context.get('request').query_params.get('recipe_limit')
+        queryset = obj.recipes.all()
+        if limit:
+            queryset = queryset[:int(limit)]
+
+        return RecipeShortSerializer(
+            queryset,
+            many=True,
+            context=self.context
+        ).data
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()

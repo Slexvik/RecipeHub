@@ -9,7 +9,7 @@ services:
   db:
     container_name: db
     image: postgres:13.10-alpine
-    env_file: ../backend/.env
+    env_file: ./.env
     volumes:
       - pg_data:/var/lib/postgresql/data
     restart: always
@@ -17,8 +17,8 @@ services:
 
   backend:
     container_name: backend
-    build: ../backend/
-    env_file: ../backend/.env
+    image: slexvik/foodgram_backend
+    env_file: ./.env
     volumes:
       - static:/app/static/
       - media:/app/media/
@@ -28,9 +28,7 @@ services:
 
   frontend:
     container_name: frontend
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: slexvik/foodgram_frontend
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
@@ -48,4 +46,3 @@ services:
       - media:/var/html/media/
     depends_on:
       - backend
-      - frontend
