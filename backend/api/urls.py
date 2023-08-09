@@ -5,7 +5,7 @@ from api.views import (
     IngredientVeiwSet,
     RecipeVeiwSet,
     TagVeiwSet,
-    UserSubscribeView
+    UserSubscribeView,
 )
 
 router = routers.DefaultRouter()
