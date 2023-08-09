@@ -46,7 +46,7 @@
 
 1. Клонировать репозиторий:
 ```bash
-git clone 
+git clone git@github.com:Slexvik/foodgram-project-react.git
 ```
 
 2. Перейти в директорию `infra/`:
